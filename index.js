@@ -14,8 +14,16 @@ const fs = require('fs/promises');
 async function readMembers(filePath) {
   // TODO: 實作此函式
   // 提示：用 fs/promises 的 readFile，記得加 'utf-8'，再用 JSON.parse 轉成物件
-  const membersData =  await fs.readFile(filePath, 'utf-8');
-  return JSON.parse(membersData);
+  try {
+    const membersData = await fs.readFile(filePath, 'utf-8');
+    return JSON.parse(membersData);
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      console.error(`檔案不存在`);
+      return []; // 回傳空陣列
+    }
+    throw err;
+  }
 }
 
 // ========== 任務二：篩選 VIP 會員 ==========
@@ -34,8 +42,7 @@ async function readMembers(filePath) {
 function filterVIP(members) {
   // TODO: 實作此函式
   // 提示：用 Array.prototype.filter，不要修改原陣列
-  return members.filter(member => member.level === 'VIP');
-
+  return members.filter((member) => member.level === 'VIP');
 }
 
 // ========== 任務三：計算會員剩餘點數總和 ==========
@@ -78,7 +85,7 @@ function getGymConfig() {
   return {
     gymName: process.env.GYM_NAME || '未命名健身房',
     adminName: process.env.ADMIN_NAME || '尚未指派',
-    defaultMembersPath: process.env.DEFAULT_MEMBERS_PATH
+    defaultMembersPath: process.env.DEFAULT_MEMBERS_PATH,
   };
 }
 
@@ -105,7 +112,7 @@ async function getVIPSummary(filePath) {
   const members = await readMembers(filePath);
   const vipMembers = filterVIP(members);
   const totalCredits = sumCredits(vipMembers);
-  const names = vipMembers.map(member => member.name);
+  const names = vipMembers.map((member) => member.name);
   return { count: vipMembers.length, totalCredits, names };
 }
 
